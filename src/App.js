@@ -1,25 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {useState} from "react";
+import { OptionSelection } from "./components/OptionSelection";
+import { Translate } from "./components/Translate";
+import "./App.css"
+import { arrayItems } from "./AI OPTIONS";
+import { OpenAIApi, Configuration } from "openai";
 
-function App() {
+const App = () => {
+
+  const config = new Configuration({
+    apiKey: process.env.REACT_APP_openAI_API_KEY,
+  })
+  
+  const openAI = new OpenAIApi(config)
+  const [translate, setTranslate] = useState([]);
+  const [input, setInput] = useState("")
+  const [response, setResponse] = useState("")
+ 
+  const selectOption = (option) => {
+      setTranslate(option)
+  }
+
+  const doStuff = async () => {
+    let object = {...translate, prompt: input}
+    const response = await openAI.createCompletion(object);
+    setResponse(response.data.choices[0].text)
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {translate.length === 0 ? 
+        <OptionSelection
+          arrayItems={arrayItems}
+          selectOption={selectOption}
+        />
+          :
+        <Translate doStuff={doStuff} setInput={setInput} response={response}/>
+      }
     </div>
-  );
-}
+    )
 
+}
 export default App;
